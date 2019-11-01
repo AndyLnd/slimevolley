@@ -3,6 +3,7 @@
   import GameContainer from "./GameContainer.svelte";
   import Slime from "./Slime.svelte";
   import Ball from "./Ball.svelte";
+  import Floor from "./Floor.svelte";
   import { slimeL, slimeR, ball } from "./store.js";
   import { loop, createWall } from "./util.js";
   import { createKeyHandler } from "./keyhandler.js";
@@ -16,13 +17,13 @@
   keyHandler.addFunction("ArrowRight", slimeR.right);
   keyHandler.addFunction("ArrowUp", slimeR.jump);
 
-  const wall = createWall(397, 510, 6, 70);
+  const net = createWall(397, 510, 6, 70);
 
   const stopLoop = loop(() => {
     keyHandler.poll();
     slimeL.update(0, 397, 580);
     slimeR.update(403, 800, 580);
-    ball.update(0, 800, 580, [wall], [$slimeL, $slimeR]);
+    ball.update(0, 800, 580, [net], [$slimeL, $slimeR]);
     slimeL.stop();
     slimeR.stop();
   });
@@ -31,8 +32,8 @@
 </script>
 
 <GameContainer width={800} height={600}>
-  <rect x="0" y="580" width="800" height="20" fill="grey" />
-  <rect {...wall} fill="white" />
+  <Floor height={20} />
+  <rect {...net} fill="white" />
   <Slime pos={$slimeL.p} facingRight target={$ball.p} color="blue" />
   <Slime pos={$slimeR.p} target={$ball.p} color="red" />
   <Ball pos={$ball.p} r={$ball.r} />

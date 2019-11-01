@@ -13,8 +13,10 @@ import {
 
 const damp = 0.95;
 const maxSpeed = 16;
-const g = 0.5;
-const jumpForce = -10;
+const gBall = 0.5;
+const gSlime = 0.7;
+const vSlime = 8;
+const jumpForce = -13.4;
 
 function createSlime(x, y) {
   const data = writable({p: vec(x, y), v: vec(0, 0), r: 50});
@@ -29,7 +31,7 @@ function createSlime(x, y) {
       isFloored = newY >= floor;
       return {
         p: vec(clamp(newX, finalLeft, finalRight), isFloored ? floor : newY),
-        v: vec(v.x, isFloored ? 0 : v.y + g),
+        v: vec(v.x, isFloored ? 0 : v.y + gSlime),
         r,
       };
     });
@@ -38,8 +40,8 @@ function createSlime(x, y) {
   return {
     subscribe: data.subscribe,
     update,
-    left: () => data.update(({p, v, r}) => ({p, v: vec(-8, v.y), r})),
-    right: () => data.update(({p, v, r}) => ({p, v: vec(8, v.y), r})),
+    left: () => data.update(({p, v, r}) => ({p, v: vec(-vSlime, v.y), r})),
+    right: () => data.update(({p, v, r}) => ({p, v: vec(vSlime, v.y), r})),
     stop: () => data.update(({p, v, r}) => ({p, v: vec(0, v.y), r})),
     jump: () => isFloored && data.update(({p, v, r}) => ({p, v: vec(v.x, jumpForce), r})),
   };
@@ -50,7 +52,7 @@ function createBall(x, y) {
 
   const update = (left, right, floor, walls = [], slimes = []) => {
     data.update(({p, v, r}) => {
-      let newBall = {r, v: vAdd(v, vec(0, g))};
+      let newBall = {r, v: vAdd(v, vec(0, gBall))};
       newBall.p = vAdd(p, newBall.v);
 
       slimes.forEach(slime => {
@@ -65,11 +67,11 @@ function createBall(x, y) {
         const direction = checkWallCollision(newBall, wall);
         if (direction) {
           hitsWall = true;
-          if (direction === Left || direction === Right) {
+          if ([Left, Right].includes(direction)) {
             newBall.v.x = -newBall.v.x;
             newBall.p.x = direction === Left ? wall.x2 + r : wall.x - r;
           }
-          if (direction === Up || direction === Down) {
+          if ([Up, Down].includes(direction)) {
             newBall.v.y = -newBall.v.y;
             newBall.p.y = direction === Up ? wall.y2 + r : wall.y - r;
           }
