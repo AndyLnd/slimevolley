@@ -14,12 +14,11 @@ export const doBallSlimeCollide = (ball, slime) => {
   return dist <= maxDist;
 };
 
-
 // based on https://blogs.msdn.microsoft.com/faber/2013/01/09/elastic-collisions-of-balls/
 export function resolveBallCollision(ball, slime) {
   const newBall = {p: vClone(ball.p), v: vClone(ball.v), r: ball.r};
   const newSlime = {p: vClone(slime.p), v: vClone(slime.v), r: slime.r};
-	
+
   const collisionAngle = Math.atan2(slime.p.y - ball.p.y, slime.p.x - ball.p.x);
   const speedBall = vLength(ball.v);
   const speedSlime = vLength(slime.v);
@@ -57,3 +56,31 @@ export function resolveBallCollision(ball, slime) {
   newSlime.p = posSlime;
   return newBall;
 }
+
+export const Direction = {
+  None: 0,
+  Up: 1,
+  Right: 2,
+  Down: 3,
+  Left: 4,
+};
+
+export const checkWallCollision = ({v, p, r}, wall) => {
+  const goesLeft = v.x < 0;
+  const goesUp = v.y < 0;
+  const left = wall.x2 - p.x + r;
+  const right = p.x + r - wall.x;
+  const top = wall.y2 - p.y + r;
+  const bottom = p.y + r - wall.y;
+
+  if (left > 0 && right > 0 && top > 0 && bottom > 0) {
+    const x = goesLeft ? left : right;
+    const y = goesUp ? top : bottom;
+    if (x < y) {
+      return goesLeft ? Direction.Left : Direction.Right;
+    } else {
+      return goesUp ? Direction.Up : Direction.Down;
+    }
+  }
+  return Direction.None;
+};

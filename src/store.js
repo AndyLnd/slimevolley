@@ -1,11 +1,20 @@
 import {writable} from 'svelte/store';
 import {clamp} from './util.js';
-import {vec, vAdd, vMul, vLength, doBallSlimeCollide, resolveBallCollision} from './physics.js';
+import {
+  vec,
+  vAdd,
+  vMul,
+  vLength,
+  doBallSlimeCollide,
+  resolveBallCollision,
+  checkWallCollision,
+  Direction,
+} from './physics.js';
 
-  const damp = 0.95;
-	const maxSpeed = 16;
-	const g = .5;
-	const jumpForce =  -10;
+const damp = 0.95;
+const maxSpeed = 16;
+const g = 0.5;
+const jumpForce = -10;
 
 function createSlime(x, y) {
   const data = writable({p: vec(x, y), v: vec(0, 0), r: 50});
@@ -49,24 +58,44 @@ function createBall(x, y) {
           newBall = resolveBallCollision(newBall, slime);
         }
       });
+
+      let hitsWall = false;
+      const {Left, Right, Up, Down} = Direction;
+      walls.forEach(wall => {
+        const direction = checkWallCollision(newBall, wall);
+        if (direction) {
+          hitsWall = true;
+          if (direction === Left || direction === Right) {
+            newBall.v.x = -newBall.v.x;
+            newBall.p.x = direction === Left ? wall.x2 + r : wall.x - r;
+          }
+          if (direction === Up || direction === Down) {
+            newBall.v.y = -newBall.v.y;
+            newBall.p.y = direction === Up ? wall.y2 + r : wall.y - r;
+          }
+        }
+      });
+
       const finalLeft = left + r;
       const finalRight = right - r;
       const finalFloor = floor - r;
-      const hitsWall = newBall.p.x <= finalLeft || newBall.p.x >= finalRight;
+
+      const hitsBounds = newBall.p.x <= finalLeft || newBall.p.x >= finalRight;
 
       const hitsFloor = newBall.p.y >= finalFloor;
       newBall.p = vec(
-        hitsWall ? (newBall.p.x <= finalLeft ? finalLeft : finalRight) : newBall.p.x,
+        hitsBounds ? (newBall.p.x <= finalLeft ? finalLeft : finalRight) : newBall.p.x,
         hitsFloor ? finalFloor : newBall.p.y
       );
-      newBall.v = vec(newBall.v.x * (hitsWall ? -1 : 1), newBall.v.y * (hitsFloor ? -1 : 1));
-      if (hitsWall || hitsFloor) {
+      newBall.v = vec(newBall.v.x * (hitsBounds ? -1 : 1), newBall.v.y * (hitsFloor ? -1 : 1));
+      if (hitsBounds || hitsFloor || hitsWall) {
         newBall.v = vMul(newBall.v, damp);
       }
-			const speed = vLength(newBall.v);
-			if (speed > maxSpeed) {
-				newBall.v = vMul(newBall.v, maxSpeed / speed);
-			}
+
+      const speed = vLength(newBall.v);
+      if (speed > maxSpeed) {
+        newBall.v = vMul(newBall.v, maxSpeed / speed);
+      }
 
       return newBall;
     });
@@ -77,7 +106,6 @@ function createBall(x, y) {
     update,
   };
 }
-
 
 export const slimeL = createSlime(200, 580);
 export const slimeR = createSlime(600, 580);
