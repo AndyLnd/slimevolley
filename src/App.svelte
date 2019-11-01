@@ -4,9 +4,23 @@
   import Slime from "./Slime.svelte";
   import Ball from "./Ball.svelte";
   import Floor from "./Floor.svelte";
-  import { slimeL, slimeR, ball } from "./store.js";
+  import { createScore, createSlime, createBall } from "./store.js";
   import { loop, createWall } from "./util.js";
   import { createKeyHandler } from "./keyhandler.js";
+
+  const maxScore = 5;
+
+  export const scoreL = createScore(maxScore);
+  export const scoreR = createScore(maxScore);
+  export const slimeL = createSlime(200, 580);
+  export const slimeR = createSlime(600, 580);
+  export const ball = createBall(200, 300, y => {
+    if (y < 400) {
+      scoreR.addPoint();
+    } else {
+      scoreL.addPoint();
+    }
+  });
 
   const keyHandler = createKeyHandler();
   keyHandler.addFunction("a", slimeL.left);

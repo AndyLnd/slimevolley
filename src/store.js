@@ -18,7 +18,7 @@ const gSlime = 0.7;
 const vSlime = 8;
 const jumpForce = -13.4;
 
-function createSlime(x, y) {
+export function createSlime(x, y) {
   const data = writable({p: vec(x, y), v: vec(0, 0), r: 50});
   let isFloored = true;
 
@@ -40,14 +40,25 @@ function createSlime(x, y) {
   return {
     subscribe: data.subscribe,
     update,
-    left: () => data.update(({p, v, r}) => ({p, v: vec(-vSlime, v.y), r})),
-    right: () => data.update(({p, v, r}) => ({p, v: vec(vSlime, v.y), r})),
-    stop: () => data.update(({p, v, r}) => ({p, v: vec(0, v.y), r})),
-    jump: () => isFloored && data.update(({p, v, r}) => ({p, v: vec(v.x, jumpForce), r})),
+    left() {
+      data.update(({p, v, r}) => ({p, v: vec(-vSlime, v.y), r}));
+    },
+    right() {
+      data.update(({p, v, r}) => ({p, v: vec(vSlime, v.y), r}));
+    },
+    stop() {
+      data.update(({p, v, r}) => ({p, v: vec(0, v.y), r}));
+    },
+    jump() {
+      isFloored && data.update(({p, v, r}) => ({p, v: vec(v.x, jumpForce), r}));
+    },
+    reset() {
+      data.set({p: vec(x, y), v: vec(0, 0), r: 50});
+    },
   };
 }
 
-function createBall(x, y) {
+export function createBall(x, y, onHitFloor = () => {}) {
   const data = writable({p: vec(x, y), v: vec(0, 0), r: 8});
 
   const update = (left, right, floor, walls = [], slimes = []) => {
@@ -98,7 +109,9 @@ function createBall(x, y) {
       if (speed > maxSpeed) {
         newBall.v = vMul(newBall.v, maxSpeed / speed);
       }
-
+      if (hitsFloor) {
+        onHitFloor(newBall.p.y);
+      }
       return newBall;
     });
   };
@@ -106,9 +119,27 @@ function createBall(x, y) {
   return {
     subscribe: data.subscribe,
     update,
+    reset() {
+      data.set({p: vec(x, y), v: vec(0, 0), r: 8});
+    },
   };
 }
 
-export const slimeL = createSlime(200, 580);
-export const slimeR = createSlime(600, 580);
-export const ball = createBall(200, 300);
+export function createScore(maxScore = 5, onWin = () => {}) {
+  const {subscribe, update} = writable(0);
+
+  const addPoint = () => {
+    update(score => {
+      const newScore = score + 1;
+      if (newScore >= maxScore) {
+        onWin();
+      }
+      return newScore;
+    });
+  };
+
+  return {
+    subscribe,
+    addPoint,
+  };
+}
