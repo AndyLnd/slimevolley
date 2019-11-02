@@ -5,7 +5,13 @@
 
 <style>
   svg {
-    background: linear-gradient(0deg, rgba(34,135,195,1) 0%, rgba(255,238,202,1) 100%);
+    min-width: 800px;
+    margin: auto;
+    background: linear-gradient(
+      0deg,
+      rgba(34, 135, 195, 1) 0%,
+      rgba(255, 238, 202, 1) 100%
+    );
   }
 </style>
 

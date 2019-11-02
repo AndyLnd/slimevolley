@@ -110,7 +110,7 @@ export function createBall(x, y, onHitFloor = () => {}) {
         newBall.v = vMul(newBall.v, maxSpeed / speed);
       }
       if (hitsFloor) {
-        onHitFloor(newBall.p.y);
+        onHitFloor(newBall.p.x);
       }
       return newBall;
     });

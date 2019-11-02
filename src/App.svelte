@@ -4,22 +4,28 @@
   import Slime from "./Slime.svelte";
   import Ball from "./Ball.svelte";
   import Floor from "./Floor.svelte";
+  import ScoreBoard from "./ScoreBoard.svelte";
   import { createScore, createSlime, createBall } from "./store.js";
   import { loop, createWall } from "./util.js";
   import { createKeyHandler } from "./keyhandler.js";
 
-  const maxScore = 5;
+  const maxScore = 6;
 
   export const scoreL = createScore(maxScore);
   export const scoreR = createScore(maxScore);
   export const slimeL = createSlime(200, 580);
   export const slimeR = createSlime(600, 580);
-  export const ball = createBall(200, 300, y => {
-    if (y < 400) {
+  export const ball = createBall(200, 300, x => {
+    if (x < 400) {
       scoreR.addPoint();
     } else {
       scoreL.addPoint();
     }
+    setTimeout(() => {
+      ball.reset();
+      slimeL.reset();
+      slimeR.reset();
+    }, 200);
   });
 
   const keyHandler = createKeyHandler();
@@ -46,6 +52,8 @@
 </script>
 
 <GameContainer width={800} height={600}>
+  <ScoreBoard {maxScore} score={$scoreL} x={20} y={30} />
+  <ScoreBoard {maxScore} toLeft score={$scoreR} x={600} y={30} />
   <Floor height={20} />
   <rect {...net} fill="white" />
   <Slime pos={$slimeL.p} facingRight target={$ball.p} color="blue" />
