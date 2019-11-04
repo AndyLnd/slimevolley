@@ -1,5 +1,4 @@
 import {writable} from 'svelte/store';
-import {clamp} from './util.js';
 import {
   vec,
   vAdd,
@@ -9,56 +8,13 @@ import {
   resolveBallCollision,
   checkWallCollision,
   Direction,
-} from './physics.js';
+} from '../physics.js';
 
 const damp = 0.95;
 const maxSpeed = 16;
 const gBall = 0.5;
-const gSlime = 0.7;
-const vSlime = 8;
-const jumpForce = -13.4;
 
-export function createSlime(x, y) {
-  const data = writable({p: vec(x, y), v: vec(0, 0), r: 50});
-  let isFloored = true;
-
-  const update = (left, right, floor) => {
-    data.update(({p, v, r}) => {
-      const finalLeft = left + r;
-      const finalRight = right - r;
-      const newY = p.y + v.y;
-      const newX = p.x + v.x;
-      isFloored = newY >= floor;
-      return {
-        p: vec(clamp(newX, finalLeft, finalRight), isFloored ? floor : newY),
-        v: vec(v.x, isFloored ? 0 : v.y + gSlime),
-        r,
-      };
-    });
-  };
-
-  return {
-    subscribe: data.subscribe,
-    update,
-    left() {
-      data.update(({p, v, r}) => ({p, v: vec(-vSlime, v.y), r}));
-    },
-    right() {
-      data.update(({p, v, r}) => ({p, v: vec(vSlime, v.y), r}));
-    },
-    stop() {
-      data.update(({p, v, r}) => ({p, v: vec(0, v.y), r}));
-    },
-    jump() {
-      isFloored && data.update(({p, v, r}) => ({p, v: vec(v.x, jumpForce), r}));
-    },
-    reset() {
-      data.set({p: vec(x, y), v: vec(0, 0), r: 50});
-    },
-  };
-}
-
-export function createBall(x, y, onHitFloor = () => {}) {
+export function createBallStore(x, y, onHitFloor = () => {}) {
   const data = writable({p: vec(x, y), v: vec(0, 0), r: 8});
 
   const update = (left, right, floor, walls = [], slimes = []) => {
@@ -119,27 +75,8 @@ export function createBall(x, y, onHitFloor = () => {}) {
   return {
     subscribe: data.subscribe,
     update,
-    reset() {
-      data.set({p: vec(x, y), v: vec(0, 0), r: 8});
+    reset(leftScores) {
+      data.set({p: vec(leftScores ? x : 800 - x, y), v: vec(0, 0), r: 8});
     },
-  };
-}
-
-export function createScore(maxScore = 5, onWin = () => {}) {
-  const {subscribe, update} = writable(0);
-
-  const addPoint = () => {
-    update(score => {
-      const newScore = score + 1;
-      if (newScore >= maxScore) {
-        onWin();
-      }
-      return newScore;
-    });
-  };
-
-  return {
-    subscribe,
-    addPoint,
   };
 }
