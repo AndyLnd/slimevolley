@@ -9,6 +9,7 @@ export const createGameStore = () => {
     ballIsHot: false,
     gameOver: true,
     started: false,
+    isSinglePlayer: false,
   });
 
   const winRound = (left = false) => {

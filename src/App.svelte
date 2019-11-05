@@ -54,8 +54,8 @@
 
   const stopLoop = loop(() => {
     keyHandler.poll();
-    slimeL.update(0, 397, 580);
-    slimeR.update(403, 800, 580);
+    slimeL.update(0, 397, 580, $game.gameOver, $ball);
+    slimeR.update(403, 800, 580, true, $ball);
     ball.update(0, 800, 580, [net], [$slimeL, $slimeR]);
     slimeL.stop();
     slimeR.stop();

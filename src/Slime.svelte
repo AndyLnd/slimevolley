@@ -22,7 +22,7 @@
     }
   }
   .dance {
-    animation: 0.2s 0.2s forwards linear infinite dance;
+    animation: 0.2s 0.2s forwards linear 10 dance;
   }
 </style>
 
